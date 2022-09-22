@@ -13,6 +13,7 @@ namespace DiscordAuditPlugin;
 public class Discord
 {
     private static readonly string[] SensitiveCharacters = { "\\", "*", "_", "~", "`", "|", ">", ":", "@" };
+    private static readonly string[] SensitiveUsernameCharacters = { "@", "#", ":", "`" };
     private readonly string _serverNameTruncated;
 
     private readonly DiscordConfiguration _configuration;
@@ -22,8 +23,9 @@ public class Discord
 
     public Discord(DiscordConfiguration configuration, EntryCarManager entryCarManager, ACServerConfiguration serverConfiguration, ChatService chatService)
     {
-        _serverNameTruncated = Regex.Replace(serverConfiguration.Server.Name, "(https?://)?discord.gg/([A-Z])\\w+", "", RegexOptions.IgnoreCase);
-        _serverNameTruncated = _serverNameTruncated.Substring(0, Math.Min(_serverNameTruncated.Length, 80));
+        _serverNameTruncated = Regex.Replace(serverConfiguration.Server.Name, "(https?://)?discord.gg/\\w+|clyde", "", RegexOptions.IgnoreCase);
+        _serverNameTruncated = SanitizeServerName(_serverNameTruncated);
+        _serverNameTruncated = _serverNameTruncated.Substring(0, Math.Min(_serverNameTruncated.Length, 80));   
         _configuration = configuration;
 
         if (!string.IsNullOrEmpty(_configuration.AuditUrl))
@@ -175,5 +177,12 @@ public class Discord
         foreach (string unsafeChar in SensitiveCharacters)
             text = text.Replace(unsafeChar, $"\\{unsafeChar}");
         return text;
+    }
+
+    private static string SanitizeServerName(string text)
+    {
+        foreach(string unsafeChar in SensitiveUsernameCharacters)
+            text = text.Replace(unsafeChar, "");
+        return text.Trim();
     }
 }
