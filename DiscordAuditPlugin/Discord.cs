@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Text.RegularExpressions;
 using AssettoServer.Commands;
 using AssettoServer.Network.Packets.Outgoing;
 using AssettoServer.Network.Tcp;
@@ -21,7 +22,8 @@ public class Discord
 
     public Discord(DiscordConfiguration configuration, EntryCarManager entryCarManager, ACServerConfiguration serverConfiguration, ChatService chatService)
     {
-        _serverNameTruncated = serverConfiguration.Server.Name.Substring(0, Math.Min(serverConfiguration.Server.Name.Length, 80));
+        _serverNameTruncated = Regex.Replace(serverConfiguration.Server.Name, "(https?://)?discord.gg/([A-Z])\\w+", "", RegexOptions.IgnoreCase);
+        _serverNameTruncated = _serverNameTruncated.Substring(0, Math.Min(_serverNameTruncated.Length, 80));
         _configuration = configuration;
 
         if (!string.IsNullOrEmpty(_configuration.AuditUrl))
